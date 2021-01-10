@@ -5,13 +5,16 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.redis.core.RedisHash;
 
 import java.io.Serializable;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @RedisHash("Roulette")
 public class Roulette implements Serializable {
+    private static final long serialVersionUID = 1L;
     @Id
-    private int id;
+    private Integer id;
     private boolean active;
+    private List<Cell> cells;
 }
