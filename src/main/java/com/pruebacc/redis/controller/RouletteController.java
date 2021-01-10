@@ -1,6 +1,7 @@
 package com.pruebacc.redis.controller;
 
 import com.pruebacc.redis.OperationState;
+import com.pruebacc.redis.entity.Bet;
 import com.pruebacc.redis.entity.Roulette;
 import com.pruebacc.redis.repository.RouletteDao;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +31,34 @@ public class RouletteController {
             return new ResponseEntity<>("{\"message\" : "+rouletteDao.updateRoulette(roulette)+"}", HttpStatus.OK);
         }
         return new ResponseEntity<>("{\"message\" : \"" + OperationState.FAILED.getViewName() +"\"}", HttpStatus.OK);
+    }
+    @PostMapping
+    public ResponseEntity<String> save(@RequestBody Bet bet, @RequestHeader("userId") Integer userId){
+        String response = OperationState.SUCCESSFUL.getViewName();
+        Roulette roulette = rouletteDao.findRouletteById(bet.getRouletteId());
+        if(roulette==null){
+            response = OperationState.ROULETTE_NON_EXISTENT.getViewName();
+        }
+        else{
+            if(!roulette.getActive()){
+                response = OperationState.ROULETTE_CLOSED.getViewName();
+            }
+            else{
+                if((bet.getBlackBet() && bet.getRedBet()) || ((bet.getBlackBet() || bet.getRedBet()) && bet.getNumberBet()!=-1)){
+                    response = OperationState.BET_NOT_ALLOWED.getViewName();
+                }
+                else if(!(bet.getBlackBet() || bet.getRedBet()) && bet.getNumberBet() <0 || bet.getNumberBet() >36){
+                    response = OperationState.BET_NUMBER_ERROR.getViewName();
+                }
+                else if(bet.getBet() <1 || bet.getBet()>10000){
+                    response = OperationState.BET_QUANTITY_ERROR.getViewName();
+                }
+                else{
+                    rouletteDao.makeABetOnRoulette(roulette, bet, userId);
+                }
+            }
+        }
+        return new ResponseEntity<>("{\"message\" : \"" + response +"\"}", HttpStatus.OK);
     }
     @GetMapping
     public List<Roulette> getAll(){

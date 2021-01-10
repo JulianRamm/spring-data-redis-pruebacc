@@ -12,10 +12,7 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Cell implements Serializable{
-    private int number;
-    private boolean red;
-    private int bet;
-    private boolean colorBet;
-    private boolean numberBet;
-    private Set<Integer> gamblers;
+    private Integer number;
+    private Boolean red;
+    private Set<Bet> bets;
 }

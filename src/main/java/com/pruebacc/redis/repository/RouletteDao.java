@@ -1,6 +1,7 @@
 package com.pruebacc.redis.repository;
 
 import com.pruebacc.redis.OperationState;
+import com.pruebacc.redis.entity.Bet;
 import com.pruebacc.redis.entity.Cell;
 import com.pruebacc.redis.entity.Roulette;
 import org.springframework.data.redis.core.HashOperations;
@@ -26,7 +27,7 @@ public class RouletteDao {
         roulette.setActive(false);
         List<Cell> cells = new ArrayList<>(37);
         for(int i = 0; i < 37; i++){
-            Cell cell = new Cell(i, i % 2 == 0, 0, false, false, new HashSet<>());
+            Cell cell = new Cell(i, i % 2 == 0, new HashSet<>());
             cells.add(cell);
         }
         roulette.setCells(cells);
@@ -38,7 +39,6 @@ public class RouletteDao {
         return hashOperations.values(HASH_KEY);
     }
     public Roulette findRouletteById(Integer id){
-        System.out.println(hashOperations.get(HASH_KEY, id));
         return (Roulette) hashOperations.get(HASH_KEY, id);
     }
     public String deleteRoulette(Integer id){
@@ -48,5 +48,29 @@ public class RouletteDao {
     public String updateRoulette(Roulette roulette){
         hashOperations.put(HASH_KEY, roulette.getId(), roulette);
         return OperationState.SUCCESSFUL.getViewName();
+    }
+    public String makeABetOnRoulette(Roulette roulette, Bet bet, Integer userId){
+        bet.setUserId(userId);
+        if(!(bet.getBlackBet() || bet.getRedBet()) && bet.getNumberBet()!=-1 ){
+            Cell cell = roulette.getCells().get(bet.getNumberBet());
+            cell.getBets().add(bet);
+        }
+        else{
+            if(bet.getBlackBet()){
+                for(Cell c: roulette.getCells()){
+                    if(!c.getRed()){
+                        c.getBets().add(bet);
+                    }
+                }
+            }
+            else{
+                for(Cell c: roulette.getCells()){
+                    if(c.getRed()){
+                        c.getBets().add(bet);
+                    }
+                }
+            }
+        }
+        return updateRoulette(roulette);
     }
 }
