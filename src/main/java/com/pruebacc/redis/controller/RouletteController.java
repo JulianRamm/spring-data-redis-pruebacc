@@ -17,10 +17,21 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class RouletteController {
     @Autowired
     private RouletteDao rouletteDao;
-    @PostMapping("/{id}")
-    public ResponseEntity<String> save(@PathVariable Integer id){
-       Roulette roulette = rouletteDao.save(id);
+
+    @PostMapping("/createRoulette")
+    public ResponseEntity<String> save(){
+       Roulette roulette = rouletteDao.save();
        return new ResponseEntity<>("{\"id\" :" +roulette.getId()+"}", HttpStatus.OK);
+    }
+    @PostMapping("/closeRoulette/{id}")
+    public ResponseEntity<String> save(@PathVariable Integer id){
+        Roulette roulette = rouletteDao.findRouletteById(id);
+        if(roulette != null){
+            roulette.setActive(false);
+            rouletteDao.updateRoulette(roulette);
+            return new ResponseEntity<>("{\"message\" : "+rouletteDao.updateRoulette(roulette)+"}", HttpStatus.OK);
+        }
+        return new ResponseEntity<>("{\"id\" :" +roulette.getId()+"}", HttpStatus.OK);
     }
     @PutMapping("/{id}")
     public ResponseEntity<String> activateRoulette(@PathVariable Integer id){

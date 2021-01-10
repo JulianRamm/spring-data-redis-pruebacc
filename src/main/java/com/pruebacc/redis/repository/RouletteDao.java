@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Repository
 public class RouletteDao {
@@ -21,7 +22,12 @@ public class RouletteDao {
         this.hashOperations = this.redisTemplate.opsForHash();
     }
     public static final String HASH_KEY = "Roulette";
-    public Roulette save(int id){
+    public Integer generateNextId(){
+        Set<Integer> keys = hashOperations.keys(HASH_KEY);
+        return keys.size()+1;
+    }
+    public Roulette save(){
+        Integer id = generateNextId();
         Roulette roulette = new Roulette();
         roulette.setId(id);
         roulette.setActive(false);
