@@ -1,17 +1,12 @@
 package com.pruebacc.redis.repository;
 
 import com.pruebacc.redis.OperationState;
-import com.pruebacc.redis.entity.Bet;
-import com.pruebacc.redis.entity.Cell;
-import com.pruebacc.redis.entity.Roulette;
+import com.pruebacc.redis.entity.*;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Repository
 public class RouletteDao {
@@ -78,5 +73,37 @@ public class RouletteDao {
             }
         }
         return updateRoulette(roulette);
+    }
+    public Summary closeBets(Roulette roulette){
+        Summary summary = new Summary();
+        Set<Result> results = new HashSet<>();
+        Random rand = new Random();
+        //int winningNumber = rand.nextInt(37);
+        int winningNumber =1;
+        summary.setWinningNumber(winningNumber);
+        List<Cell> cells = roulette.getCells();
+        Cell winningCell = cells.get(winningNumber);
+        for(Cell cell: cells){
+            generateResultsOfACell(cell, winningCell, results);
+        }
+        summary.setResults(results);
+        return summary;
+    }
+    public void generateResultsOfACell(Cell cell, Cell winningCell, Set<Result> setToAddResults){
+        for(Bet bet: cell.getBets()){
+            Result res = new Result();
+            res.setBetMade(bet);
+            res.setUserId(bet.getUserId());
+            if(winningCell.getNumber().equals(bet.getNumberBet())){
+                res.setEarnedMoney(bet.getBet()*5.0);
+            }
+            else if(winningCell.getRed().equals(bet.getRedBet())){
+                res.setEarnedMoney(bet.getBet()*1.8);
+            }
+            else{
+                res.setEarnedMoney(0.0);
+            }
+            setToAddResults.add(res);
+        }
     }
 }

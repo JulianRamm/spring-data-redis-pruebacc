@@ -3,6 +3,7 @@ package com.pruebacc.redis.controller;
 import com.pruebacc.redis.OperationState;
 import com.pruebacc.redis.entity.Bet;
 import com.pruebacc.redis.entity.Roulette;
+import com.pruebacc.redis.entity.Summary;
 import com.pruebacc.redis.repository.RouletteDao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -10,7 +11,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 @RestController
 @RequestMapping("/roulette")
@@ -21,17 +21,8 @@ public class RouletteController {
     @PostMapping("/createRoulette")
     public ResponseEntity<String> save(){
        Roulette roulette = rouletteDao.save();
+
        return new ResponseEntity<>("{\"id\" :" +roulette.getId()+"}", HttpStatus.OK);
-    }
-    @PostMapping("/closeRoulette/{id}")
-    public ResponseEntity<String> save(@PathVariable Integer id){
-        Roulette roulette = rouletteDao.findRouletteById(id);
-        if(roulette != null){
-            roulette.setActive(false);
-            rouletteDao.updateRoulette(roulette);
-            return new ResponseEntity<>("{\"message\" : "+rouletteDao.updateRoulette(roulette)+"}", HttpStatus.OK);
-        }
-        return new ResponseEntity<>("{\"id\" :" +roulette.getId()+"}", HttpStatus.OK);
     }
     @PutMapping("/{id}")
     public ResponseEntity<String> activateRoulette(@PathVariable Integer id){
@@ -39,12 +30,26 @@ public class RouletteController {
         if(roulette != null){
             roulette.setActive(true);
             rouletteDao.updateRoulette(roulette);
+
             return new ResponseEntity<>("{\"message\" : "+rouletteDao.updateRoulette(roulette)+"}", HttpStatus.OK);
         }
+
         return new ResponseEntity<>("{\"message\" : \"" + OperationState.FAILED.getViewName() +"\"}", HttpStatus.OK);
     }
+    @PostMapping("/closeRoulette/{id}")
+    public Summary closeRoulette(@PathVariable Integer id){
+        Roulette roulette = rouletteDao.findRouletteById(id);
+        if(roulette != null){
+            roulette.setActive(false);
+            rouletteDao.updateRoulette(roulette);
+
+            return rouletteDao.closeBets(roulette);
+        }
+
+        return null;
+    }
     @PostMapping
-    public ResponseEntity<String> save(@RequestBody Bet bet, @RequestHeader("userId") Integer userId){
+    public ResponseEntity<String> makeABet(@RequestBody Bet bet, @RequestHeader("userId") Integer userId){
         String response = OperationState.SUCCESSFUL.getViewName();
         Roulette roulette = rouletteDao.findRouletteById(bet.getRouletteId());
         if(roulette==null){
@@ -69,14 +74,17 @@ public class RouletteController {
                 }
             }
         }
+
         return new ResponseEntity<>("{\"message\" : \"" + response +"\"}", HttpStatus.OK);
     }
     @GetMapping
     public List<Roulette> getAll(){
+
         return rouletteDao.findAll();
     }
     @GetMapping("/{id}")
     public Roulette findRoulette(@PathVariable Integer id){
+
         return rouletteDao.findRouletteById(id);
     }
     @DeleteMapping("/{id}")
