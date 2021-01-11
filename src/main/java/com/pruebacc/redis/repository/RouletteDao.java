@@ -87,6 +87,7 @@ public class RouletteDao {
             generateResultsOfACell(cell, winningCell, results);
         }
         summary.setResults(results);
+        
         return summary;
     }
     public void generateResultsOfACell(Cell cell, Cell winningCell, Set<Result> setToAddResults){
